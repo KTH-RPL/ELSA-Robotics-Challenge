@@ -1,0 +1,70 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "federated-elsa-robotics"
+version = "1.0.0"
+description = ""
+license = "Apache-2.0"
+dependencies = [
+    "flwr[simulation]>=1.15.1",
+    "flwr-datasets[vision]>=0.5.0",
+    "torch==2.5.1",
+    "torchvision==0.20.1",
+    "torchaudio",
+    "matplotlib",
+    "wandb",
+    "tqdm",
+    "moviepy==1.0.3",
+    "opencv-python-headless",
+]
+
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]
+
+[tool.flwr.app]
+publisher = "santibb"
+
+[tool.flwr.app.components]
+serverapp = "federated_elsa_robotics.server_app:app"
+clientapp = "federated_elsa_robotics.client_app:app"
+
+[tool.flwr.app.config]
+# Number of rounds in the federated learning process (server epochs)
+num-server-rounds = 100
+
+# Number of local epochs on each client
+local-epochs = 50
+
+# Fraction of clients that participate in each round (defines the subset from num-supernodes)
+fraction-fit = 0.05
+
+# Fraction of clients that are evaluated in each round
+fraction-eval = 0.0025
+
+# server-device = "cpu"
+server-device = "cuda:0"
+use-wandb = true
+
+# DatasetOptions
+dataset-config-path="dataset_config.yaml"
+
+# Task to be learned by the model
+dataset-task= "close_box"
+
+# Samples per client
+train-split= 0.9
+
+[tool.flwr.federations]
+default = "local-simulation"
+
+[tool.flwr.federations.local-simulation]
+# Number of clients in the federation (a subset will be selected for each round based on the fraction-fit parameter)
+options.num-supernodes = 400
+
+# Number of CPU cores available to each client
+options.backend.client-resources.num-cpus = 2
+# Define the number of GPUs available to the clients (If we have 20 clients and 1 GPU, we can set this to 0.05)
+options.backend.client-resources.num-gpus = 0.05
